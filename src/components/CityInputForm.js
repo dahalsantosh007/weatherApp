@@ -1,13 +1,25 @@
+/*
+    # make it as component 
+    # deployment in firbase
+    # get some advertisement if possible
+    # add feature like 
+        # to do list
+        # receipe addition and sharing
+        # firebase authentication using google account
+        # mongodb and express integration
+        # use hooks and redux toolkit
+        # add news scrapping
+*/
 import React, { useState,useEffect } from 'react';
-import fetchAction from '../actions/fetchDataAction';
-import {connect} from 'react-redux';
+import {useSelector,useDispatch} from 'react-redux'
 import {Card,Form,Modal} from 'react-bootstrap';
 import DayPicker from "react-day-picker";
-import "react-day-picker/lib/style.css";
 import ExtraCity from './ExtraCity';
 import cityTimezones from "city-timezones";
+import "react-day-picker/lib/style.css";
+import { getWeatherAction } from '../features/GetWeather';
 
-const CityInputForm =({city,fetchAction,weather,condition})=>{
+const CityInputForm =({city})=>{
     const [enteredCity,setEnterCity] = useState('Boston');
     const [show, setShow] = useState(false);
     const [alertShow, setAlertShow] = useState(false);
@@ -15,6 +27,8 @@ const CityInputForm =({city,fetchAction,weather,condition})=>{
     const [cities,setCities]= useState([]);
     const [timezone,setTimeZone]= useState();
     const [time,setTime]= useState();
+    const {condition,weather} = useSelector(state=>state.posts);
+    const dispatch = useDispatch()
 
     const myStyle = {
         backgroundImage: `${condition.main === 'Clouds' ? 
@@ -48,8 +62,7 @@ const CityInputForm =({city,fetchAction,weather,condition})=>{
     };
 
     useEffect(()=>{
-        fetchAction({city:enteredCity});
-        
+        dispatch(getWeatherAction({city}))
         let storedCity = localStorage.getItem('storedCity')
         if(storedCity){
             setCities(JSON.parse(storedCity));
@@ -75,7 +88,7 @@ const CityInputForm =({city,fetchAction,weather,condition})=>{
 
     const submitCity =(cityToCheck,e)=>{
         e.preventDefault();
-        fetchAction({city:cityToCheck});
+        dispatch(getWeatherAction({city:cityToCheck}))
 
         try{
             const cityLookup = cityTimezones.lookupViaCity(cityToCheck)
@@ -123,11 +136,9 @@ const CityInputForm =({city,fetchAction,weather,condition})=>{
     }
 
     const reviewTemp =(sentCity)=>{
-        fetchAction({city:sentCity})
-    }
+        dispatch(getWeatherAction({city:sentCity}))
 
-    let weatherTimer = setInterval((e) => reviewTemp(enteredCity), 1000*60*60);
-    let localTimeTime = setInterval(() => checkTime(), 1000*60);
+    }
 
     return( 
         !!!condition.main ? "":
@@ -239,9 +250,4 @@ const CityInputForm =({city,fetchAction,weather,condition})=>{
     )
 }
 
-const mapStateToProps = state =>({
-    weather : state.posts.weatherData,
-    condition: state.posts.conditionData
-})
-
-export default connect(mapStateToProps,{fetchAction})(CityInputForm);
+export default CityInputForm;
